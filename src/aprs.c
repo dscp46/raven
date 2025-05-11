@@ -31,7 +31,7 @@ int aprsis_parse( char *str, char *callsign, char **payload)
 int aprs_parse_symbol( char *str, char *tid, char *code)
 {
 	size_t len = strlen( str);
-	//if( str[len-]
+
 	switch( str[0] )
 	{
 	case ';':
