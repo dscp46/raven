@@ -12,55 +12,11 @@
 
 #include "aprs.h"
 #include "nagios.h"
+#include "net.h"
 
 #define PORT "14580"
 #define BUFFER_SIZE 1480
 #define RECONNECT_DELAY 5  // seconds
-
-void *get_in_addr(struct sockaddr *sa) {
-    if (sa->sa_family == AF_INET)
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-int connect_to_host(const char *host, struct addrinfo **res_out, char *ipstr_out) {
-    struct addrinfo hints, *res, *p;
-    int sockfd;
-    int rv;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    if ((rv = getaddrinfo(host, PORT, &hints, &res)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return -1;
-    }
-
-    for (p = res; p != NULL; p = p->ai_next) {
-        void *addr = get_in_addr((struct sockaddr *)p->ai_addr);
-        inet_ntop(p->ai_family, addr, ipstr_out, INET6_ADDRSTRLEN);
-        printf("Trying to connect to %s...\n", ipstr_out);
-
-        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (sockfd == -1) {
-            perror("socket");
-            continue;
-        }
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("connect");
-            close(sockfd);
-            continue;
-        }
-
-        *res_out = res; // Return the addrinfo for reuse
-        return sockfd;
-    }
-
-    freeaddrinfo(res);
-    return -1;
-}
 
 int main(int argc, char *argv[]) {
     const char host[] = "euro.aprs2.net";
@@ -81,7 +37,7 @@ int main(int argc, char *argv[]) {
     struct timeval tv = {40, 0};
 
     while (1) {
-        sockfd = connect_to_host(host, &res, ipstr);
+        sockfd = connect_to_host(host, &res, ipstr, PORT);
         if (sockfd == -1) {
             fprintf(stderr, "Connection failed. Retrying in %d seconds...\n", RECONNECT_DELAY);
             sleep(RECONNECT_DELAY);
