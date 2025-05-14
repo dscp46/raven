@@ -29,4 +29,6 @@ struct allowlist_t {
     UT_hash_handle hh;
 };
 
+allowlist_t *allowlist_init(void);
+
 #endif	/* __ALLOWLIST_H */

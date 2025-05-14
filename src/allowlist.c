@@ -136,8 +136,8 @@ allowlist_t *allowlist_init(void) {
     return map;
 }
 
-/*
-int main() {
+
+int allowlist_run_tests() {
     allowlist_t *root = allowlist_init();
 
     root->add(root, "Alice");
@@ -162,4 +162,4 @@ int main() {
     root->cleanup(root);
     return 0;
 }
-*/
+

@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "allowlist.h"
 #include "aprs.h"
 #include "nagios.h"
 #include "net.h"
@@ -26,6 +27,8 @@ int main(int argc, char *argv[]) {
     char aprsis_user[] = "F4HOF-R", \
          aprsis_pass[] = "-1", \
          aprsis_filter[] = "r/45.4/4.5/60";
+    allowlist_t *allowed_callsigns = allowlist_init();
+    allowed_callsigns->add( allowed_callsigns, "F1ZCK-14");
 
     nagios_svc_ret_t status;
     char *message[] = {
@@ -119,7 +122,10 @@ int main(int argc, char *argv[]) {
 		    status = UNKNOWN;
 	    }
 
-            nagios_send_svc_check( "-", &recv_time, callsign, "Power", status, mesg);
+	    if ( allowed_callsigns->find( allowed_callsigns, callsign) != NULL )
+		    nagios_send_svc_check( "-", &recv_time, callsign, "Power", status, mesg);
+	    else
+		    printf( "Ignored entry for %s\n", callsign);
 
 	    //printf( "Src: %s, Logo: %c%c\n", callsign, sym_table, sym_code);
 
