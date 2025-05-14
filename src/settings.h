@@ -14,6 +14,7 @@ struct app_ctx_t {
 
 struct settings_t {
 	char *aprsis_fqdn;
+	char *aprsis_port;
 	char *aprsis_user;
 	char *aprsis_passcode;
 	char *aprsis_filter;

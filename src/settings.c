@@ -43,6 +43,7 @@ struct settings_t *settings_init(void)
 	// Initialize other attributes
 	instance->aprsis_fqdn = NULL;
 	instance->aprsis_user = NULL;
+	instance->aprsis_port = NULL;
 	instance->aprsis_passcode = NULL;
 	instance->aprsis_filter = NULL;
 	instance->debug = 0;
@@ -60,6 +61,9 @@ void settings_cleanup( struct settings_t *self)
 	
 	if( instance->aprsis_user != NULL )
 		free(instance->aprsis_user);
+	
+	if( instance->aprsis_port != NULL )
+		free(instance->aprsis_port);
 	
 	if( instance->aprsis_passcode != NULL )
 		free(instance->aprsis_passcode);
