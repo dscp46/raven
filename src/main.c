@@ -15,6 +15,7 @@
 #include "nagios.h"
 #include "net.h"
 
+
 #define PORT "14580"
 #define BUFFER_SIZE 1480
 #define RECONNECT_DELAY 5  // seconds

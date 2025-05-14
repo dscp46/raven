@@ -2,8 +2,8 @@ CC=gcc
 CCFLAGS=-Wall -Wextra -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -Wformat -Wformat=2 -Wimplicit-fallthrough -fstack-clash-protection -fstack-protector-strong 
 BUILDDIR=./build
 SRCDIR=./src
-LIBS=-lpthread
-objects=$(addprefix $(BUILDDIR)/, allowlist.o main.o aprs.o nagios.o net.o)
+LIBS=-lpthread -lconfig
+objects=$(addprefix $(BUILDDIR)/, allowlist.o main.o aprs.o nagios.o net.o settings.o)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) -c -o $@ $< $(CCFLAGS)
