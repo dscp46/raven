@@ -169,6 +169,7 @@ char *strdupalloc( const char *str)
 	return instance;
 }
 
+// Look up for a string in a config tree. If it exists, update the content, with necessary re-allocs.
 void setting_lookup_string( config_t *cfg, const char *node_name, char **str)
 {
 	if ( cfg == NULL || node_name == NULL || str == NULL )
