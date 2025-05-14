@@ -17,6 +17,7 @@ int settings_load( struct settings_t *self, const char* filename);
 int settings_save( struct settings_t *self, const char* filename);
 void settings_cleanup( struct settings_t *self);
 char *strdupalloc( const char *str);
+void setting_lookup_string( config_t *cfg, const char *node_name, char **str);
 
 /***** Implementations *****/
 struct settings_t *settings_init(void)
@@ -83,7 +84,6 @@ int settings_load( struct settings_t *self, const char* filename)
 		return EINVAL;
 	
 	config_t cfg;
-	config_setting_t *setting;
 	config_init(&cfg);
 	
 	if ( !config_read_file(&cfg, filename) )
@@ -98,36 +98,11 @@ int settings_load( struct settings_t *self, const char* filename)
 		return ECANCELED;
 	}
 	
-	if ( self->aprsis_fqdn != NULL )
-		free( self->aprsis_fqdn );
-	
-	setting = config_lookup( &cfg, "app.aprsis.fqdn");
-	self->aprsis_fqdn = strdupalloc( config_setting_get_string(setting));
-	
-	if ( self->aprsis_port != NULL )
-		free( self->aprsis_port );
-	
-	setting = config_lookup( &cfg, "app.aprsis.port");
-	self->aprsis_port = strdupalloc( config_setting_get_string(setting));
-	
-	if ( self->aprsis_user != NULL )
-		free( self->aprsis_user );
-	
-	setting = config_lookup( &cfg, "app.aprsis.user");
-	self->aprsis_user = strdupalloc( config_setting_get_string(setting));
-	
-	if ( self->aprsis_passcode != NULL )
-		free( self->aprsis_passcode );
-	
-	setting = config_lookup( &cfg, "app.aprsis.passcode");
-	self->aprsis_passcode = strdupalloc( config_setting_get_string(setting));
-	
-	if ( self->aprsis_filter != NULL )
-		free( self->aprsis_filter );
-	
-	setting = config_lookup( &cfg, "app.aprsis.filter");
-	self->aprsis_filter = strdupalloc( config_setting_get_string(setting));
-	
+	setting_lookup_string( &cfg, "app.aprsis.fqdn", &self->aprsis_fqdn);
+	setting_lookup_string( &cfg, "app.aprsis.port", &self->aprsis_port);
+	setting_lookup_string( &cfg, "app.aprsis.user", &self->aprsis_user);
+	setting_lookup_string( &cfg, "app.aprsis.passcode", &self->aprsis_passcode);
+	setting_lookup_string( &cfg, "app.aprsis.filter", &self->aprsis_filter);
 	config_lookup_int( &cfg, "app.debug", &self->debug);
 	
 	config_destroy(&cfg);
@@ -192,4 +167,21 @@ char *strdupalloc( const char *str)
 	instance[cstr_sz] = '\0';
 	
 	return instance;
+}
+
+void setting_lookup_string( config_t *cfg, const char *node_name, char **str)
+{
+	if ( cfg == NULL || node_name == NULL || str == NULL )
+		return;
+	
+	config_setting_t *setting;	
+	setting = config_lookup( cfg, node_name);
+	
+	if( !setting )
+		return;
+	
+	if ( *str != NULL )
+		free( *str );
+	
+	*str = strdupalloc( config_setting_get_string(setting));
 }
