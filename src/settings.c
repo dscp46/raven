@@ -48,6 +48,7 @@ struct settings_t *settings_init(void)
 	instance->aprsis_port = NULL;
 	instance->aprsis_passcode = NULL;
 	instance->aprsis_filter = NULL;
+	instance->nagios_cmd_fname = NULL;
 	instance->debug = 0;
 	
 	return instance;
@@ -74,6 +75,9 @@ void settings_cleanup( struct settings_t *self)
 	
 	if( self->aprsis_filter != NULL )
 		free(self->aprsis_filter);
+
+	if( self->nagios_cmd_fname != NULL )
+		free(self->nagios_cmd_fname);
 	
 	free( self);
 }
@@ -103,6 +107,7 @@ int settings_load( struct settings_t *self, const char* filename)
 	setting_lookup_string( &cfg, "app.aprsis.user", &self->aprsis_user);
 	setting_lookup_string( &cfg, "app.aprsis.passcode", &self->aprsis_passcode);
 	setting_lookup_string( &cfg, "app.aprsis.filter", &self->aprsis_filter);
+	setting_lookup_string( &cfg, "app.nagios.filename", &self->nagios_cmd_fname);
 	config_lookup_int( &cfg, "app.debug", &self->debug);
 	
 	config_destroy(&cfg);
@@ -117,22 +122,26 @@ int settings_save( struct settings_t *self, const char* filename)
 		|| self->aprsis_user == NULL
 		|| self->aprsis_passcode == NULL
 		|| self->aprsis_filter == NULL
+		|| self->nagios_cmd_fname == NULL
 	)
 		return EINVAL;
 		
 	config_t cfg;
-    config_setting_t *root, *app, *aprsis;
+    config_setting_t *root, *app, *aprsis, *nagios;
     config_init(&cfg);
     
     root = config_root_setting(&cfg);
     app = config_setting_add(root, "app", CONFIG_TYPE_GROUP);
     aprsis = config_setting_add(app, "aprsis", CONFIG_TYPE_GROUP);
+    nagios = config_setting_add(app, "nagios", CONFIG_TYPE_GROUP);
     
-	config_setting_add(aprsis, "fqdn", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_fqdn;
-	config_setting_add(aprsis, "port", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_port;
+    config_setting_add(aprsis, "fqdn", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_fqdn;
+    config_setting_add(aprsis, "port", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_port;
     config_setting_add(aprsis, "user", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_user;
     config_setting_add(aprsis, "passcode", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_passcode;
     config_setting_add(aprsis, "filter", CONFIG_TYPE_STRING)->value.sval = (char *)self->aprsis_filter;
+
+    config_setting_add(nagios, "filename", CONFIG_TYPE_STRING)->value.sval = (char *)self->nagios_cmd_fname;
     
     config_setting_add(app, "debug", CONFIG_TYPE_INT)->value.ival = self->debug;
     
