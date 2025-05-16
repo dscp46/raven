@@ -18,6 +18,7 @@ struct settings_t {
 	char *aprsis_user;
 	char *aprsis_passcode;
 	char *aprsis_filter;
+	char *nagios_cmd_fname;
 	allowlist_t *allowed_callsigns;
 	int debug;
 	
