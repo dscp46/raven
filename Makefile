@@ -28,7 +28,7 @@ debug: clean raven
 install: raven
 	install -d $(DESTDIR)$(PREFIX)/bin/
 	install -m 755 raven $(DESTDIR)$(PREFIX)/bin/
-	install -m 600 -o nagios etc/raven.cfg /etc/
+	install -m 600 -o raven etc/raven.cfg /etc/
 	install -m 644 etc/raven.service /etc/systemd/system/
 
 uninstall:
