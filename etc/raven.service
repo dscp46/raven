@@ -1,0 +1,15 @@
+[Unit]
+Description=APRS to Nagios/Centreon passive checks bridge
+After=network-online.target
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=30s
+EnvironmentFile=-/etc/default/raven
+ExecStart=/usr/local/bin/raven "$CFGFILE"
+
+[Install]
+WantedBy=multi-user.target

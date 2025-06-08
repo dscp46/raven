@@ -18,6 +18,7 @@ int settings_save( struct settings_t *self, const char* filename);
 void settings_cleanup( struct settings_t *self);
 char *strdupalloc( const char *str);
 void setting_lookup_string( config_t *cfg, const char *node_name, char **str);
+void setting_load_allowlist( config_t *cfg, const char *node_name, allowlist_t *list);
 
 /***** Implementations *****/
 struct settings_t *settings_init(void)
@@ -36,7 +37,7 @@ struct settings_t *settings_init(void)
 	
 	// Initialize allowlist
 	instance->allowed_callsigns = allowlist_init();
-	if ( instance->allowed_callsigns )
+	if ( instance->allowed_callsigns == NULL )
 	{
 		instance->cleanup( instance);
 		return NULL;
@@ -109,6 +110,8 @@ int settings_load( struct settings_t *self, const char* filename)
 	setting_lookup_string( &cfg, "app.aprsis.filter", &self->aprsis_filter);
 	setting_lookup_string( &cfg, "app.nagios.filename", &self->nagios_cmd_fname);
 	config_lookup_int( &cfg, "app.debug", &self->debug);
+	
+	setting_load_allowlist( &cfg, "app.allowlist", self->allowed_callsigns);
 	
 	config_destroy(&cfg);
 	return 0;
@@ -195,3 +198,28 @@ void setting_lookup_string( config_t *cfg, const char *node_name, char **str)
 	
 	*str = strdupalloc( config_setting_get_string(setting));
 }
+
+void setting_load_allowlist( config_t *cfg, const char *node_name, allowlist_t *list)
+{
+	if( cfg == NULL || node_name == NULL || list == NULL )
+		return;
+
+	config_setting_t *setting;
+	const char *value;
+	int count;
+
+	setting = config_lookup( cfg, node_name);
+	if( setting == NULL || !config_setting_is_array(setting) )
+		return;
+
+	count = config_setting_length( setting);
+
+	// TODO: Purge the allowlist content
+
+	while ( count-- > 0 )
+	{
+		if( ( value = config_setting_get_string_elem( setting, count)) != NULL )
+			list->add( list, value);
+	}
+}
+

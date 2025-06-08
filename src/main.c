@@ -14,22 +14,46 @@
 #include "aprs.h"
 #include "nagios.h"
 #include "net.h"
-
+#include "settings.h"
 
 #define PORT "14580"
 #define BUFFER_SIZE 1480
 #define RECONNECT_DELAY 5  // seconds
 
 int main(int argc, char *argv[]) {
-    const char host[] = "euro.aprs2.net";
+    const char *settings_fnames[] = {
+	    "/etc/raven.cfg",
+	    "/var/lib/raven/raven.cfg",
+	    "./etc/raven.cfg",
+	    "./raven.cfg"
+    };
+    settings_t *settings = settings_init();
+
+    if ( argc == 2 && access( argv[1], R_OK) == 0 )
+	    settings->load( settings, argv[1]);
+    else
+    {
+	    size_t i;
+	    size_t nb_alternates = sizeof( settings_fnames);
+	    for( i=0; i<nb_alternates; ++i)
+	    {
+		    if( access( settings_fnames[i], R_OK) != 0 )
+			    continue;
+
+		    settings->load( settings, settings_fnames[i]);
+		    break;
+	    }
+
+	    if( i == nb_alternates )
+	    {
+		    fprintf( stderr, "Unable to open any of the default config files, aborting.\n");
+		    exit( 1);
+	    }
+    }
+
     struct addrinfo *res = NULL;
     char ipstr[INET6_ADDRSTRLEN];
     int sockfd;
-    char aprsis_user[] = "F4HOF-R", \
-         aprsis_pass[] = "-1", \
-         aprsis_filter[] = "r/45.4/4.5/60";
-    allowlist_t *allowed_callsigns = allowlist_init();
-    allowed_callsigns->add( allowed_callsigns, "F1ZCK-14");
 
     nagios_svc_ret_t status;
     char *message[] = {
@@ -41,7 +65,7 @@ int main(int argc, char *argv[]) {
     struct timeval tv = {40, 0};
 
     while (1) {
-        sockfd = connect_to_host(host, &res, ipstr, PORT);
+        sockfd = connect_to_host( settings->aprsis_fqdn, &res, ipstr, settings->aprsis_port);
         if (sockfd == -1) {
             fprintf(stderr, "Connection failed. Retrying in %d seconds...\n", RECONNECT_DELAY);
             sleep(RECONNECT_DELAY);
@@ -54,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 	// Send login banner
         char login_msg[80];
-        snprintf( login_msg, 80, "user %s pass %s vers Raven 1.0 filter %s\r\n", aprsis_user, aprsis_pass, aprsis_filter);
+        snprintf( login_msg, 80, "user %s pass %s vers Raven 1.0 filter %s\r\n", settings->aprsis_user, settings->aprsis_passcode, settings->aprsis_filter);
 
         ssize_t sent = send(sockfd, login_msg, strlen(login_msg), 0);
         if (sent == -1) {
@@ -72,7 +96,7 @@ int main(int argc, char *argv[]) {
 
         size_t len;
 	time_t recv_time;
-	int is_local;
+	// int is_local;
 	char *mesg;
 
         while(1) {
@@ -123,7 +147,7 @@ int main(int argc, char *argv[]) {
 		    status = UNKNOWN;
 	    }
 
-	    if ( allowed_callsigns->find( allowed_callsigns, callsign) != NULL )
+	    if ( settings->allowed_callsigns->find( settings->allowed_callsigns, callsign) != NULL )
 		    nagios_send_svc_check( "-", &recv_time, callsign, "Power", status, mesg);
 	    else
 		    printf( "Ignored entry for %s\n", callsign);
@@ -142,4 +166,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

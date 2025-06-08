@@ -25,3 +25,14 @@ symbols:
 debug: CCFLAGS += -g
 debug: clean raven
 
+install: raven
+	install -d $(DESTDIR)$(PREFIX)/bin/
+	install -m 755 raven $(DESTDIR)$(PREFIX)/bin/
+	install -m 600 etc/raven.cfg /etc/
+	install -m 644 etc/raven.service /etc/systemd/system/
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/raven
+	rm -f /etc/raven.cfg
+	rm -f /etc/systemd/system/raven.service
+
