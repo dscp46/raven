@@ -5,6 +5,8 @@ StartLimitIntervalSec=500
 StartLimitBurst=5
 
 [Service]
+User=raven
+Group=nagios
 Type=simple
 Restart=on-failure
 RestartSec=30s
