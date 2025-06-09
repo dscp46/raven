@@ -148,7 +148,10 @@ int main(int argc, char *argv[]) {
 	    }
 
 	    if ( settings->allowed_callsigns->find( settings->allowed_callsigns, callsign) != NULL )
+	    {
 		    nagios_send_svc_check( settings->nagios_cmd_fname, &recv_time, callsign, "Power", status, mesg);
+	            nagios_send_host_check( settings->nagios_cmd_fname, &recv_time, callsign, HOST_OK, "OK - Recently received APRS packet");
+            }
 	    else
 		    printf( "Ignored entry for %s\n", callsign);
 
